@@ -15,6 +15,8 @@ function (data, textStatus, jqXHR){
     let envia = () =>{
         console.log(ele)
         socket.emit("conecta_sala",ele);
+        socket.emit("queu");
+        
     
     }
     buto.on("click",() => envia())
@@ -33,7 +35,7 @@ function (data, textStatus, jqXHR){
 
 
 
-
+//socket.emit("comeca_jogo");
 
 
 
@@ -76,6 +78,22 @@ const game = new Game()
 
 
 socket.on("mensagem", (msg)=> console.log(msg))
+
+
+socket.on("comeca_jogo", (msg)=>{
+    console.log(msg)
+
+})
+
+socket.on("queu", (msg)=>{
+    let div = $("#player_jogo");
+
+    msg.forEach(ele=>{
+        let p = $(`<p>${ele} </p>`)
+        div.append(p)
+    })
+
+})
 
 
 socket.on("atualiza_jogo", (msg)=> {

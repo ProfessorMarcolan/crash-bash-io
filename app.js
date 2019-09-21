@@ -23,7 +23,7 @@ class Jogo{
         socket.player = contr_player.get_player()
 
         socket.join(this.sala);
-        io.to(this.sala).emit('comeca', "conectado");
+        //io.to(this.sala).emit('comeca', "conectado");
 
         socket.on("move_direita", ()=>{
 
@@ -40,6 +40,18 @@ class Jogo{
             io.to(this.sala).emit("atualiza_jogo", socket.player);
     
         })
+
+
+        socket.on("queu", ()=>{
+    
+    
+            io.to(this.sala).emit("queu", 
+            this.players.map((ele)=>{return ele.id}));
+    
+        })
+
+
+
 
         this.qnt_player = this.players.length
 
@@ -122,6 +134,8 @@ function get_sala_by_id(sala){
     return sala_jogo_encontrada;
 }
 
+
+//funcao depreceada temq ue arruma para apenas crear jogos
 function create_jogo(sala,socket){
 
     jogos.forEach(ele =>{
