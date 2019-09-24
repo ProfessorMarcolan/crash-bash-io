@@ -68,7 +68,7 @@ class Sala{
         let regra_max_qtd_player= this.players.length < 3 
 
         if(regra_max_qtd_player){
-            socket.sala = this.nome_sala 
+            socket.sala = this
 
             socket.on("leave", (id) => this.leave(id))
             socket.on("ready", ()=> this.ready())
@@ -281,9 +281,16 @@ io.on('connection', (socket) => {
     })
     
 
-    //socket.on('disconnect', function () {
-     //   socket.leave(socket.sala);
-     // });
+     socket.on('disconnect', function () {
+       
+
+        if (this.sala !=null){
+            socket.sala.leave(socket.id)
+        }
+       
+
+       
+     });
     
 
 
