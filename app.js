@@ -38,7 +38,7 @@ class Sala{
 
     set_socket_sala(socket){
 
-        let regra_max_qtd_player= this.players.length <= 4 
+        let regra_max_qtd_player= this.players.length < 3 
 
         if(regra_max_qtd_player){
             this.sockets.push(socket)
@@ -69,7 +69,7 @@ class Sala{
         //provavelmente tem que arrumar para ter estado
         this.players.map((ele)=>{return { id: ele.id, ligado:true}}));
 
-        this.jogo.starta_jogo()
+        this.jogo.comeca_jogo()
 
     }
 
