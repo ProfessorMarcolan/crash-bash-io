@@ -12,6 +12,7 @@ class Sala{
     constructor(sala){
         this.sala = sala 
         this.players = []
+        this.sockets = []
         //talvez nos se arrependeremos dessa decição :D
         this.jogo = new Jogo(this.sala, this.players)
 
@@ -39,7 +40,7 @@ class Sala{
         let regra_max_qtd_player= this.players.length <= 4 
 
         if(regra_max_qtd_player){
-            this.players.push(socket)
+            this.sockets.push(socket)
 
             //gambiarra vai dar problema no futuro
             //levar essa responsabilidade para a classe jogo
@@ -52,7 +53,7 @@ class Sala{
 
             socket.join(this.sala);
             this.queu()
-            this.qnt_player = this.players.length
+            this.qnt_player = this.sockets.length
 
         }else{
             this.starta_jogo()
@@ -110,7 +111,6 @@ class Cons_player{
 class Jogo{
     constructor(sala,players){
         this.sala = sala 
-        this.players = []
         this.players = players
 
         
@@ -136,9 +136,9 @@ class Jogo{
     }
 
     get_dados(){
-        //let player_pos = this.players.map((ele)=> {ele.get_dados()})
+        let player_pos = this.players.map((ele)=> {return ele.get_dados()})
 
-        return [{players:[], estado:true}]
+        return [{players:player_pos, estado:true}]
 
     }
 
