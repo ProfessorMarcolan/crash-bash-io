@@ -90,11 +90,27 @@ socket.on("queu", (msg)=>{
 
     msg.forEach(ele=>{
         let p = $(`<p>${ele.id} </p>`)
+        let buto = $(`<button>Ready</button>`)
+        let envia = () =>{
+            console.log(ele)
+            socket.emit("ready");
+            
+        
+        }
+        buto.on("click",() => envia())
+
+
+
         div.append(p)
+        div.append(buto)
     })
 
 })
 
+
+socket.on("game_loop", (msg)=> {
+    console.log(msg)
+    })
 
 socket.on("atualiza_jogo", (msg)=> {
     console.log(msg)

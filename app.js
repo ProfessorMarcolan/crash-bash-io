@@ -12,16 +12,13 @@ class Sala{
     constructor(sala){
         this.sala = sala 
         //os players tem o socket dentro deles
+        //esta duplicado
         this.players = []
         this.sockets = []
         //talvez nos se arrependeremos dessa decição :D
         this.jogo = new Jogo(this.sala, this.players)
 
         
-
-
-        
-
         //this.estados = [jogando, pausado, iniciando]
 
     }
@@ -36,11 +33,33 @@ class Sala{
     }
 
 
+    remove_socket(socket){
+
+        sockets.forEach(ele =>{
+           ele == socket
+        } ) 
+        this.sockets = []
+
+    }
+
+    get_socket_by_id(id){
+        let socket_encontrado = null
+        this.sockets.forEach(ele=>{
+
+            if(ele.id == id){
+                socket_encontrado = ele 
+            }
+
+        })
+        return socket_encontrado
+    }
+
     set_socket_sala(socket){
 
         let regra_max_qtd_player= this.players.length < 3 
 
         if(regra_max_qtd_player){
+            socket.sala = this.sala 
             this.sockets.push(socket)
 
             //gambiarra vai dar problema no futuro
@@ -49,11 +68,18 @@ class Sala{
             this.players.push(contr_player.get_player())
             socket.on("comeca_jogo",()=> this.jogo.comeca_jogo() )
             socket.on("queu", ()=> this.queu)
+            
             //socket.player = contr_player.get_player()
 
 
             socket.join(this.sala);
             this.queu()
+
+
+            //o id que vai sair vem do cliente.
+            //nao parece ser algo bomm
+            socket.on("leave", (id)=> this.leave(id))
+            socket.on("ready", ()=> this.ready())
             this.qnt_player = this.sockets.length
 
         }else{
@@ -63,13 +89,32 @@ class Sala{
         
     }
 
+
+    //talvez pega o id da maquina
+    leave(id){
+        let socket = get_socket_by_id(id)
+        socket.leave(this.sala)
+        
+    }
+
+
+
+    ready(){
+
+    }
+
+
+
+
     starta_jogo(){
 
         io.to(this.sala).emit("queu", 
         //provavelmente tem que arrumar para ter estado
         this.players.map((ele)=>{return { id: ele.id, ligado:true}}));
 
-        this.jogo.comeca_jogo()
+        
+
+        this.timer_jogo = setInterval(()=> {this.jogo.loop()},1000)
 
     }
 
@@ -117,6 +162,10 @@ class Jogo{
         
         
         //this.socket.on("comeca_jogo",()=> this.comeca_jogo() )
+    }
+
+    loop(){
+        io.to(this.sala).emit("game_loop", {players:[], jogo:true});
     }
 
     //inicio, fim ,pausa (nao se pausa jogo online HUASDHUADSHU)
@@ -187,9 +236,15 @@ io.on('connection', (socket) => {
     //refatorar
     socket.on("conecta_sala",(sala)=>{
         conecta_sala(sala, socket)
+
+        
         
     })
     
+
+    socket.on('disconnect', function () {
+        socket.leave(socket.sala);
+      });
     
 
 
@@ -286,17 +341,43 @@ class Player{
         this.id = socket_player.id
         this.socket = socket_player
 
+        this.nome_player = ""
+        this.regra_player_pronto = false
+
 
 
         //estamos conectando o player com o evento do socket
         this.socket.on("move_direita",()=> this.move_direita() )
         this.socket.on("move_esquerda", ()=> this.move_esquerda())
+        this.socket.on("set_nome", (nome)=> this.set_nome(nome))
+        this.socket.on("ready", ()=> this.ready())
 
         
     }
+    set_nome(nome){
 
-    //arrumar como especifica o player
-    //defasado nems ei se funciona mais HUShudsauhhuSADHUASDHUhuds
+        this.nome_player = nome
+        //this.jogo.regras_jogo()
+
+    }
+
+    ready(){
+
+        this.regra_player_pronto = !this.regra_player_pronto
+
+        io.to(this.sala).emit("ready", true);
+        //this.jogo.regras_jogo()
+
+    }
+
+
+
+
+
+
+
+
+    //arrumar com as informações especificas do player
     get_dados(){
         return {x:this.pos.x
                ,y:this.pos.y
