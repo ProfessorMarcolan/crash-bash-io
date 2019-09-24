@@ -5,42 +5,28 @@ const io = require('socket.io')(http);
 
 app.use(express.static("./assets"));
 
-class Jogo{
+
+
+class Sala{
     constructor(sala){
         this.sala = sala 
         this.players = []
+        //talvez nos se arrependeremos dessa decição :D
+        this.jogo = new Jogo(this.sala, this.players)
 
-        //envia que tem q matar o plyer
     }
 
-    //funcao que faz tudo que é possivel HUASDHUASDHUHUASDUHASDHU
-    //necessário uma refatoração imediata :D
     set_player(socket){
 
         this.players.push(socket)
 
-        let contr_player = new Cons_player(socket.id)
+        let contr_player = new Cons_player(socket,this.sala)
         socket.player = contr_player.get_player()
 
         socket.join(this.sala);
         //io.to(this.sala).emit('comeca', "conectado");
 
-        socket.on("move_direita", ()=>{
-
-            socket.player.move_direita()
-    
-            io.to(this.sala).emit("atualiza_jogo", socket.player);
-            }
-        )
-    
-        socket.on("move_esquerda", ()=>{
-    
-            socket.player.move_esquerda()
-    
-            io.to(this.sala).emit("atualiza_jogo", socket.player);
-    
-        })
-
+        
 
         socket.on("queu", ()=>{
     
@@ -57,21 +43,35 @@ class Jogo{
 
 
     }
+}
+
+
+
+
+
+class Jogo{
+    constructor(sala,players){
+        this.sala = sala 
+        this.players = []
+        this.players = players
+    }
+
+
+
 
 
 }
 
-
-const jogos = [new Jogo(gera_nomes_aleatorios())]
+const salas = [new Sala(gera_nomes_aleatorios())]
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
    });
 
 //construir uma rota para pegar todos os jgoso ativos
-
 app.get('/pega_salas', (req, res) => {
-    let jogos_id = jogos.map((ele)=> {return ele.sala})
+    let jogos_id = salas.map((ele)=> {return ele.sala})
+    //refatorar o nome disso aqui
     res.json({ jogos: jogos_id });
    });
 
@@ -125,7 +125,7 @@ function conecta_sala(sala,socket){
 
 function get_sala_by_id(sala){
     let sala_jogo_encontrada = null 
-    jogos.forEach(ele =>{
+    salas.forEach(ele =>{
         if(ele.sala == sala )
         sala_jogo_encontrada = ele
 
@@ -175,8 +175,8 @@ http.listen(3000, () => {
   });
 
 class Cons_player{
-    constructor(id_player){
-        this.player = new Player(id_player)
+    constructor(socket, sala){
+        this.player = new Player(socket,sala)
         let movimento = new Movimento(true)
 
         this.player.set_movimento(movimento)
@@ -192,14 +192,23 @@ class Cons_player{
 
 
 class Player{
-    constructor(id_player){
+    constructor(socket_player,sala){
+        this.sala = sala 
         this.vida = 0
         this.pos ={
             x : 10,
             y : 10
         }
 
-        this.id = id_player
+        this.id = socket_player.id
+        this.socket = socket_player
+
+
+
+        //estamos conectando o player com o evento do socket
+        this.socket.on("move_direita",()=> this.move_direita() )
+        this.socket.on("move_esquerda", ()=> this.move_esquerda())
+
         
     }
 
@@ -225,9 +234,19 @@ class Player{
     move_direita(){
         this.movimento.move_direita();
 
+        //arrumar o que envia
+        io.to(this.sala).emit("atualiza_jogo", this.get_dados());
+
     }
     move_esquerda(){
         this.movimento.move_esquerda();
+
+        //arrumar o que envia
+        io.to(this.sala).emit("atualiza_jogo", this.get_dados());
+    }
+
+    atira_poder(){
+
     }
 
 
