@@ -25,13 +25,20 @@ class Sala{
 
     }
 
+    //refatorar nem sei o que isso faz mais onome é ilegivel
+    //tem mais de uma forma de usar a mesma coisa
+
     queu(){
     
-            this.linha_direta.emit("queu", 
+         //   this.linha_direta.emit("queu", 
             //provavelmente tem que arrumar para ter estado
-            this.players.map((ele)=>{return { id: ele.id, estado:false}}));
+         //   this.players.map((ele)=>{return { id: ele.id, estado:false}}));
     
         
+            this.linha_direta.emit("queu",
+        {players_array_id: this.players.map((ele)=>{return { id: ele.id, ligado:true}})
+        }
+        );
     }
 
 
@@ -62,10 +69,16 @@ class Sala{
 
         if(regra_max_qtd_player){
             socket.sala = this.nome_sala 
-            this.sockets.push(socket)
+
+            socket.on("leave", (id) => this.leave(id))
+            socket.on("ready", ()=> this.ready())
+            
 
             //gambiarra vai dar problema no futuro
             //levar essa responsabilidade para a classe jogo
+
+            //estamos construino  o player na sala ? Deveria ser construido no jogo
+            //depois eu arrumao :D xD 
             let contr_player = new Cons_player(socket, this, this.jogo)
             this.players.push(contr_player.get_player())
             socket.on("comeca_jogo",()=> this.jogo.comeca_jogo() )
@@ -80,9 +93,9 @@ class Sala{
 
             //o id que vai sair vem do cliente.
             //nao parece ser algo bomm
-            socket.on("leave", (id)=> this.leave(id))
-            socket.on("ready", ()=> this.ready())
+            
             this.qnt_player = this.sockets.length
+            this.sockets.push(socket)
 
         }else{
             this.starta_jogo()
@@ -92,13 +105,30 @@ class Sala{
     }
 
 
-    //talvez pega o id da maquina
-    leave(id){
-        let socket = get_socket_by_id(id)
-        socket.leave(this.nome_sala)
-        
+    remove_player(socket){
+        let pos_player = -1
+        this.players.forEach((ele,id)=>{
+            if (ele.socket == socket){
+                pos_player = id
+            }
+        })
+
+        this.players.splice(pos_player ,1)
     }
 
+    //talvez pega o id da maquina
+    leave(id){
+        let socket = this.get_socket_by_id(id)
+        socket.leave(this.nome_sala)
+        
+        this.remove_player(socket)
+
+        this.linha_direta.emit("leave", {saiu_sala: true, socket_id : socket.id})
+
+        this.queu();
+    }
+
+    //brasil_urgente
 
 
     ready(){
@@ -110,9 +140,10 @@ class Sala{
 
     starta_jogo(){
 
-        this.linha_direta.emit("queu", 
-        //provavelmente tem que arrumar para ter estado
-        this.players.map((ele)=>{return { id: ele.id, ligado:true}}));
+        this.linha_direta.emit("queu",
+        {players_array_id: this.players.map((ele)=>{return { id: ele.id, ligado:true}})
+        }
+        );
 
         
 
@@ -250,9 +281,9 @@ io.on('connection', (socket) => {
     })
     
 
-    socket.on('disconnect', function () {
-        socket.leave(socket.sala);
-      });
+    //socket.on('disconnect', function () {
+     //   socket.leave(socket.sala);
+     // });
     
 
 

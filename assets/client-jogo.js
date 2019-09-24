@@ -12,24 +12,49 @@ function (data, textStatus, jqXHR){
     this.data = data 
     data.jogos.forEach(ele => {
     let buto = $(`<button>${ele}</button>`)
+    let buto_saida = $(`<button>Saia dessa SALA</button>`)
+
+
     let envia = () =>{
         console.log(ele)
         socket.emit("conecta_sala",ele);
+
         socket.emit("queu");
         
     
     }
+
+    let envia_saida = ()=>{
+        socket.emit("leave", socket.id)
+    }
+
     buto.on("click",() => envia())
+    buto_saida.on("click",() => envia_saida())
 
     $('#sala').append(buto);
+
+    $('#sala').append(buto_saida);
     })
     
 });
 
 
 
+socket.on("leave", (msg)=>{
+
+    if (msg.saiu_sala && socket.id === msg.socket_id){
+        let div = $("#player_jogo")
+        div[0].innerText =""
+
+        alert("SAIU DA SALA MANO")
 
 
+    }else{
+
+        alert("Alguem saiu da sala")
+    }
+
+})
 
 
 
@@ -85,8 +110,9 @@ socket.on("comeca_jogo", (msg)=>{
 
 })
 
-socket.on("queu", (msg)=>{
+function atualizando_player_sala(msg){
     let div = $("#player_jogo");
+    div[0].innerText = ""
 
     msg.forEach(ele=>{
         let p = $(`<p>${ele.id} </p>`)
@@ -104,6 +130,10 @@ socket.on("queu", (msg)=>{
         div.append(p)
         div.append(buto)
     })
+}
+socket.on("queu", (msg)=>{
+    
+    atualizando_player_sala(msg.players_array_id)
 
 })
 
