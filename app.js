@@ -10,13 +10,15 @@ app.use(express.static("./assets"));
 
 class Sala{
     constructor(sala){
-        this.sala = sala 
+        this.nome_sala = sala 
         //os players tem o socket dentro deles
         //esta duplicado
         this.players = []
         this.sockets = []
         //talvez nos se arrependeremos dessa decição :D
-        this.jogo = new Jogo(this.sala, this.players)
+        this.jogo = new Jogo(this, this.players)
+
+        this.linha_direta = io.to(this.nome_sala)
 
         
         //this.estados = [jogando, pausado, iniciando]
@@ -25,7 +27,7 @@ class Sala{
 
     queu(){
     
-            io.to(this.sala).emit("queu", 
+            this.linha_direta.emit("queu", 
             //provavelmente tem que arrumar para ter estado
             this.players.map((ele)=>{return { id: ele.id, estado:false}}));
     
@@ -59,12 +61,12 @@ class Sala{
         let regra_max_qtd_player= this.players.length < 3 
 
         if(regra_max_qtd_player){
-            socket.sala = this.sala 
+            socket.sala = this.nome_sala 
             this.sockets.push(socket)
 
             //gambiarra vai dar problema no futuro
             //levar essa responsabilidade para a classe jogo
-            let contr_player = new Cons_player(socket, this.sala, this.jogo)
+            let contr_player = new Cons_player(socket, this, this.jogo)
             this.players.push(contr_player.get_player())
             socket.on("comeca_jogo",()=> this.jogo.comeca_jogo() )
             socket.on("queu", ()=> this.queu)
@@ -72,7 +74,7 @@ class Sala{
             //socket.player = contr_player.get_player()
 
 
-            socket.join(this.sala);
+            socket.join(this.nome_sala);
             this.queu()
 
 
@@ -93,7 +95,7 @@ class Sala{
     //talvez pega o id da maquina
     leave(id){
         let socket = get_socket_by_id(id)
-        socket.leave(this.sala)
+        socket.leave(this.nome_sala)
         
     }
 
@@ -108,7 +110,7 @@ class Sala{
 
     starta_jogo(){
 
-        io.to(this.sala).emit("queu", 
+        this.linha_direta.emit("queu", 
         //provavelmente tem que arrumar para ter estado
         this.players.map((ele)=>{return { id: ele.id, ligado:true}}));
 
@@ -116,6 +118,10 @@ class Sala{
 
         this.timer_jogo = setInterval(()=> {this.jogo.loop()},1000)
 
+    }
+
+    stoppa_jogo(){
+        clearInterval(this.timer_jogo)
     }
 
 
@@ -159,20 +165,22 @@ class Jogo{
         this.sala = sala 
         this.players = players
 
-        
+        this.linha_direta = io.to(this.sala.nome_sala)
         
         //this.socket.on("comeca_jogo",()=> this.comeca_jogo() )
     }
 
     loop(){
-        io.to(this.sala).emit("game_loop", {players:[], jogo:true});
+        this.linha_direta.emit("game_loop", {players:[], jogo:true});
+
+
     }
 
     //inicio, fim ,pausa (nao se pausa jogo online HUASDHUADSHU)
     
     comeca_jogo(){
 
-        io.to(this.sala).emit("comeca_jogo", true);
+        this.linha_direta.emit("comeca_jogo", true);
         
     }
 
@@ -194,7 +202,7 @@ class Jogo{
 
     envia_estado_jogo(){
 
-        io.to(this.sala).emit("atualiza_jogo", this.get_dados());
+        this.linha_direta.emit("atualiza_jogo", this.get_dados());
         
     }
 
@@ -213,7 +221,7 @@ app.get('/', (req, res) => {
 
 //construir uma rota para pegar todos os jgoso ativos
 app.get('/pega_salas', (req, res) => {
-    let jogos_id = salas.map((ele)=> {return ele.sala})
+    let jogos_id = salas.map((ele)=> {return ele.nome_sala})
     //refatorar o nome disso aqui
     res.json({ jogos: jogos_id });
    });
@@ -267,7 +275,7 @@ function conecta_sala(sala,socket){
 function get_sala_by_id(sala){
     let sala_jogo_encontrada = null 
     salas.forEach(ele =>{
-        if(ele.sala == sala )
+        if(ele.nome_sala == sala )
         sala_jogo_encontrada = ele
 
     })
@@ -345,6 +353,8 @@ class Player{
         this.regra_player_pronto = false
 
 
+        this.linha_direta = io.to(this.sala.nome_sala)
+
 
         //estamos conectando o player com o evento do socket
         this.socket.on("move_direita",()=> this.move_direita() )
@@ -365,7 +375,7 @@ class Player{
 
         this.regra_player_pronto = !this.regra_player_pronto
 
-        io.to(this.sala).emit("ready", true);
+        this.linha_direta.emit("ready", true);
         //this.jogo.regras_jogo()
 
     }
