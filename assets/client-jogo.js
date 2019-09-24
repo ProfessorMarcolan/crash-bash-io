@@ -89,7 +89,7 @@ socket.on("queu", (msg)=>{
     let div = $("#player_jogo");
 
     msg.forEach(ele=>{
-        let p = $(`<p>${ele} </p>`)
+        let p = $(`<p>${ele.id} </p>`)
         div.append(p)
     })
 

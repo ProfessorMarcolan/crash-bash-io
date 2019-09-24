@@ -11,6 +11,7 @@ app.use(express.static("./assets"));
 class Sala{
     constructor(sala){
         this.sala = sala 
+        //os players tem o socket dentro deles
         this.players = []
         this.sockets = []
         //talvez nos se arrependeremos dessa decição :D
@@ -29,7 +30,7 @@ class Sala{
     
             io.to(this.sala).emit("queu", 
             //provavelmente tem que arrumar para ter estado
-            this.players.map((ele)=>{return { id: ele.id, stado:false}}));
+            this.players.map((ele)=>{return { id: ele.id, estado:false}}));
     
         
     }
@@ -66,7 +67,7 @@ class Sala{
 
         io.to(this.sala).emit("queu", 
         //provavelmente tem que arrumar para ter estado
-        this.players.map((ele)=>{return { id: ele.id, stado:true}}));
+        this.players.map((ele)=>{return { id: ele.id, ligado:true}}));
 
         this.jogo.starta_jogo()
 
