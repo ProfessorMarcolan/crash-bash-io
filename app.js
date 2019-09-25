@@ -13,12 +13,12 @@ class Sala{
         this.nome_sala = sala 
         //os players tem o socket dentro deles
         //esta duplicado
-        this.players = []
-        this.sockets = []
+        this.players = new Set()
+        this.sockets = new Set()
         //talvez nos se arrependeremos dessa decição :D
         this.jogo = new Jogo(this, this.players)
 
-        this.linha_direta = io.to(this.nome_sala)
+        this.linha_direta = io.in(this.nome_sala)
 
         
         //this.estados = [jogando, pausado, iniciando]
@@ -34,9 +34,9 @@ class Sala{
             //provavelmente tem que arrumar para ter estado
          //   this.players.map((ele)=>{return { id: ele.id, estado:false}}));
     
-        
-            this.linha_direta.emit("queu",
-        {players_array_id: this.players.map((ele)=>{return { id: ele.id, ligado:true}})
+        let list_player = [... this.players.values()]
+        this.linha_direta.emit("queu",
+        {players_array_id: list_player.map((ele)=>{return { id: ele.id, ligado:true}})
         }
         );
     }
@@ -65,10 +65,11 @@ class Sala{
 
     set_socket_sala(socket){
 
-        let regra_max_qtd_player= this.players.length < 3 
+        let regra_max_qtd_player= [...this.players.values()].length < 3 
 
-        if(regra_max_qtd_player){
+        if(regra_max_qtd_player && !this.sockets.has(socket)){
             socket.sala = this
+            socket.join(this.nome_sala);
 
             socket.on("leave", (id) => this.leave(id))
             socket.on("ready", ()=> this.ready())
@@ -80,14 +81,14 @@ class Sala{
             //estamos construino  o player na sala ? Deveria ser construido no jogo
             //depois eu arrumao :D xD 
             let contr_player = new Cons_player(socket, this, this.jogo)
-            this.players.push(contr_player.get_player())
-            socket.on("comeca_jogo",()=> this.jogo.comeca_jogo() )
+            this.players.add(contr_player.get_player())
+            socket.on("comeca_jogo",(room,mensagem)=> this.jogo.comeca_jogo(room) )
             socket.on("queu", ()=> this.queu)
             
             //socket.player = contr_player.get_player()
 
 
-            socket.join(this.nome_sala);
+            
             this.queu()
 
 
@@ -95,7 +96,7 @@ class Sala{
             //nao parece ser algo bomm
             
             this.qnt_player = this.sockets.length
-            this.sockets.push(socket)
+            this.sockets.add(socket)
 
         }else{
             this.starta_jogo()
@@ -107,13 +108,16 @@ class Sala{
 
     remove_player(socket){
         let pos_player = -1
-        this.players.forEach((ele,id)=>{
+        let player = null
+        let lis_vet = [...this.players.values()]
+        lis_vet.forEach((ele,id)=>{
             if (ele.socket == socket){
                 pos_player = id
+                player = ele
             }
         })
 
-        this.players.splice(pos_player ,1)
+        this.players.delete(player)
     }
 
     //talvez pega o id da maquina
@@ -140,8 +144,10 @@ class Sala{
 
     starta_jogo(){
 
+
+        let lis_player = [...this.players.values()]
         this.linha_direta.emit("queu",
-        {players_array_id: this.players.map((ele)=>{return { id: ele.id, ligado:true}})
+        {players_array_id: lis_player.map((ele)=>{return { id: ele.id, ligado:true}})
         }
         );
 
@@ -196,7 +202,7 @@ class Jogo{
         this.sala = sala 
         this.players = players
 
-        this.linha_direta = io.to(this.sala.nome_sala)
+        this.linha_direta = io.in(this.sala.nome_sala)
         
         //this.socket.on("comeca_jogo",()=> this.comeca_jogo() )
     }
@@ -209,7 +215,7 @@ class Jogo{
 
     //inicio, fim ,pausa (nao se pausa jogo online HUASDHUADSHU)
     
-    comeca_jogo(){
+    comeca_jogo(room){
 
         this.linha_direta.emit("comeca_jogo", true);
         
@@ -244,7 +250,7 @@ function gera_nomes_aleatorios(){
 
 
 
-const salas = [new Sala(gera_nomes_aleatorios())]
+const salas = [new Sala(gera_nomes_aleatorios()), new Sala(gera_nomes_aleatorios())]
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
@@ -391,7 +397,7 @@ class Player{
         this.regra_player_pronto = false
 
 
-        this.linha_direta = io.to(this.sala.nome_sala)
+        this.linha_direta = this.socket.to(this.sala.nome_sala)
 
 
         //estamos conectando o player com o evento do socket
