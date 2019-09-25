@@ -1,32 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Home</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+    <body>
+        <nav class="navbar bg-dark">
+            <div class="row w-100">
+                <div class="col">
+                    <span class="text-white font-weight-bold">
+                        Logo
+                    </span>
+                </div>
+                <div class="col-auto">
+                    <span class="text-white font-weight-bold">Server</span>
+                    <span id="STATUS_SERVER_TEXT" class="font-weight-bold text-uppercase text-danger">off</span>
+                    <span id="STATUS_SERVER_DOT" class="text-danger"><i class="fa fa-server"></i></span>
+                </div>
+            </div>
+        </nav>
+
+        <h2 class="text-center mt-3 font-2">Arruma seu nick <span class="badge badge-danger text-uppercase">seja responsavel</span></h2>
+
+        <div class="container-fluid mt-4">
+            <div class="row justify-content-center">
+                <form id="form-player">
+                    <div class="input-group">
+                        <input id="USER_NICK" type="text" class="form-control" placeholder="Seu Nick" required/>
+                        <input id="USER_PSWD" type="password" class="form-control" placeholder="Senha" required/>
+                        <div class="input-group-append">    
+                            <button class="btn btn-outline-primary" type="submit">Logar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col p-1 bg-dark rounded mx-2 shadow">
+                    <h4 class="text-center text-white mt-1">Selecione uma sala</h4>
+                    <div id="SALAS" class="p-1 mt-2"></div>
+                </div>
+                <div class="col-4 p-1 border border-dark rounded">
+                    <h5 class="text-center text-uppercase">Salão</h5>
+                    <div id="LOBBY" class="rounded bg-dark py-1 shadow"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-4 rounded border border-dark mx-auto">
+            <h4 class="text-center"><i class="fa fa-chat"></i>Chat</h4>
+            <hr>
+            <div class="row">
+                <div class="col-12">
+                    <div id="CHAT_LOBBY"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- <h2> JOGO</h2>
+        <svg id="canvas" width="640" height ="480"></svg>
+
+        <footer>
+        </footer> -->
+        
+    </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js" integrity="sha256-i2Orhi397HWPn93rsCUTW8HBoso65vY/VNTllm9Kuqo=" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <title>Document</title>
-
-</head>
-<body>
-
-    <h2> Arruma seu nick (seja responsavel)</h2>
-
-    <h2> Selecione uma sala</h2>
-    <div id="sala"> </div>
-
-    <h2> Informações dos players que estão na sala</h2>
-    <div id="player_jogo"> </div>
-    
-
-    <h2> JOGO</h2>
-    <svg id="canvas" width="640" height ="480"></svg>
-    
-
-    <footer>
-        <script src="client-jogo.js"></script>
-    </footer>
-</body>
+    <script src="../src/Client/basic-client.js"></script>
 </html>
