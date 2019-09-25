@@ -10,7 +10,7 @@ socket.emit("connect");
 $.getJSON('/pega_salas', 
 function (data, textStatus, jqXHR){
     this.data = data 
-    data.jogos.forEach(ele => {
+    data.forEach(ele => {
     let buto = $(`<button>${ele}</button>`)
     let buto_saida = $(`<button>Saia dessa SALA</button>`)
 
@@ -18,8 +18,6 @@ function (data, textStatus, jqXHR){
     let envia = () =>{
         console.log(ele)
         socket.emit("conecta_sala",ele);
-
-        socket.emit("queu");
         
     
     }
@@ -37,6 +35,9 @@ function (data, textStatus, jqXHR){
     })
     
 });
+
+
+
 
 
 
@@ -102,7 +103,7 @@ class Game{
 const game = new Game()
 
 
-socket.on("mensagem", (msg)=> console.log(msg))
+socket.on("oi", (msg)=> console.log(msg))
 
 
 socket.on("comeca_jogo", (msg)=>{
